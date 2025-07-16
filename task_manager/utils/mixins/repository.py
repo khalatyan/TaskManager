@@ -1,10 +1,13 @@
 from optparse import Option
 from typing import TypeVar, Generic, Type, List
 
+from fastapi import Depends
 from pydantic import BaseModel
 from sqlalchemy import and_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+
+from task_manager.database import get_session
 
 T = TypeVar("T")  # ORM модель
 C = TypeVar("C", bound=BaseModel)  # схема создания (Pydantic)
@@ -35,7 +38,7 @@ class CRUDRepositoryMixin(Generic[T, C, U, R], metaclass=CRUDRepositoryMeta):
     enabled_update: bool = True
     enabled_delete: bool = True
 
-    def __init__(self, session: AsyncSession):
+    def __init__(self, session: AsyncSession = Depends(get_session)):
         self.session = session
 
     async def get_by_id(self, obj_id: int) -> R | None:

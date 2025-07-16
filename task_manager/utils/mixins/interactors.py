@@ -1,7 +1,7 @@
 from typing import TypeVar, Generic
 
+from fastapi import Depends
 from pydantic import BaseModel
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from task_manager.utils.mixins.repository import CRUDRepositoryMixin
 
@@ -30,11 +30,9 @@ class CRUDInteractorMixin(Generic[T, C, U, R], metaclass=CRUDInteractorMeta):
     enabled_create: bool = True
     enabled_update: bool = True
     enabled_delete: bool = True
-    crud_repository: CRUDRepositoryMixin = None
 
-    def __init__(self, session: AsyncSession):
-        self.session = session
-        self.crud_repository = self.crud_repository(session)
+    def __init__(self, crud_repository: CRUDRepositoryMixin):
+        self.crud_repository = crud_repository
 
     async def get_by_id(self, obj_id: int) -> R:
         return await self.crud_repository.get_by_id(obj_id)

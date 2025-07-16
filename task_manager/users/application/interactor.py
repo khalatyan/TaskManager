@@ -1,3 +1,5 @@
+from fastapi import Depends
+
 from task_manager.users.application.repository import UserRepository
 from task_manager.users.exceptions import UserAlreadyExistsError
 from task_manager.users.models import User
@@ -9,6 +11,12 @@ from task_manager.utils.mixins.interactors import CRUDInteractorMixin
 class UserInteractor(CRUDInteractorMixin[User, UserCreate, UserUpdate, UserRead]):
     crud_repository = UserRepository
     enabled_delete = True
+
+    def __init__(
+        self,
+        crud_repository: UserRepository = Depends(UserRepository)
+    ):
+        super().__init__(crud_repository)
 
     async def create(self, schema: UserCreate) -> UserRead:
         existing_users = await self.crud_repository.filter(email=schema.email)
