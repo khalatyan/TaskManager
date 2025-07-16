@@ -7,6 +7,9 @@ class UserBase(BaseModel):
 class UserCreate(UserBase):
     pass
 
+class UserAuth(UserBase):
+    pass
+
 class UserCreateHashedPassword(BaseModel):
     email: EmailStr
     hashed_password: str
@@ -19,10 +22,14 @@ class UserRead(BaseModel):
         "from_attributes": True
     }
 
+class UserFullRead(UserRead):
+    hashed_password: str
+
 class UserUpdate(BaseModel):
     email: EmailStr | None = None
     password: str | None = None
 
 
-class UserAuth(UserBase):
-    pass
+class Token(BaseModel):
+    access_token: str
+    token_type: str

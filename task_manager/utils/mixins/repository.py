@@ -41,27 +41,30 @@ class CRUDRepositoryMixin(Generic[T, C, U, R], metaclass=CRUDRepositoryMeta):
     def __init__(self, session: AsyncSession = Depends(get_session)):
         self.session = session
 
-    async def get_by_id(self, obj_id: int) -> R | None:
+    async def get_by_id(self, obj_id: int, with_schema: BaseModel = None) -> R | None:
         result = await self.session.execute(select(self.model).where(self.model.id == obj_id))
         obj = result.scalars().first()
-        return self.read_schema.from_orm(obj)
+        with_schema = with_schema or self.read_schema
+        return with_schema.from_orm(obj)
 
-    async def filter(self, **filter_data: dict) -> List[R]:
+    async def filter(self, with_schema: BaseModel = None, **filter_data: dict) -> List[R]:
         filters = [getattr(self.model, key) == value for key, value in filter_data.items()]
         stmt = select(self.model).where(and_(*filters))
         result = await self.session.execute(stmt)
         objs = result.scalars().all()
-        return [self.read_schema.from_orm(obj) for obj in objs]
+        with_schema = with_schema or self.read_schema
+        return [with_schema.from_orm(obj) for obj in objs]
 
 
-    async def create(self, schema: C) -> R:
+    async def create(self, schema: C, with_schema: BaseModel = None) -> R:
         obj = self.model(**schema.dict())
         self.session.add(obj)
         await self.session.commit()
         await self.session.refresh(obj)
-        return self.read_schema.from_orm(obj)
+        with_schema = with_schema or self.read_schema
+        return with_schema.from_orm(obj)
 
-    async def update(self, db_obj_id: int, schema: U) -> R:
+    async def update(self, db_obj_id: int, schema: U, with_schema: BaseModel = None) -> R:
         result = await self.session.execute(select(self.model).where(self.model.id == db_obj_id))
         db_obj = result.scalars().first()
         data = schema.dict(exclude_unset=True)
@@ -70,7 +73,8 @@ class CRUDRepositoryMixin(Generic[T, C, U, R], metaclass=CRUDRepositoryMeta):
         self.session.add(db_obj)
         await self.session.commit()
         await self.session.refresh(db_obj)
-        return self.read_schema.from_orm(db_obj)
+        with_schema = with_schema or self.read_schema
+        return with_schema.from_orm(db_obj)
 
     async def delete(self, db_obj_id: int):
         result = await self.session.execute(select(self.model).where(self.model.id == db_obj_id))
