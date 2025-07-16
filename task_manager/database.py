@@ -9,7 +9,7 @@ class DataBaseConfig:
         self.DB_PORT = os.getenv('DB_PORT', 5432)
         self.DB_USER = os.getenv('DB_USER', 'postgres')
         self.DB_PASSWORD = os.getenv('DB_PASSWORD', 'postgres')
-        self.DB_NAME = os.getenv('DB_NAME', 'auth_db')
+        self.DB_NAME = os.getenv('DB_NAME', 'database')
 
     @property
     def database_url(self) -> str:

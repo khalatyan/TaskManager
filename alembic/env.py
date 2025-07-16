@@ -37,7 +37,7 @@ def run_migrations_offline():
 
 
 def do_run_migrations(connection: Connection):
-    context.configure(connection=connection, target_metadata=Base.metadata)
+    context.configure(connection=connection, target_metadata=ORMBase.metadata)
 
     with context.begin_transaction():
         context.run_migrations()
