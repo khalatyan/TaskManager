@@ -1,4 +1,4 @@
-from typing import TypeVar, Generic
+from typing import TypeVar, Generic, List, Optional, Dict, Any
 
 from fastapi import Depends
 from pydantic import BaseModel
@@ -39,6 +39,13 @@ class CRUDInteractorMixin(Generic[T, C, U, R], metaclass=CRUDInteractorMeta):
 
     async def create(self, schema: C) -> R:
         return await self.crud_repository.create(schema)
+
+    async def filter(
+        self,
+        and_filters: Optional[Dict[str, Any]] = None,
+        or_filters: Optional[Dict[str, Any]] = None,
+    ) -> List[R]:
+        return await self.crud_repository.filter(and_filters=and_filters, or_filters=or_filters)
 
     async def update(self, db_obj_id: int, schema: U) -> R:
         return await self.crud_repository.update(db_obj_id, schema)

@@ -1,9 +1,9 @@
 from optparse import Option
-from typing import TypeVar, Generic, Type, List
+from typing import TypeVar, Generic, Type, List, Optional, Any, Dict
 
 from fastapi import Depends
 from pydantic import BaseModel
-from sqlalchemy import and_
+from sqlalchemy import and_ as sa_and, or_ as sa_or
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
@@ -47,9 +47,31 @@ class CRUDRepositoryMixin(Generic[T, C, U, R], metaclass=CRUDRepositoryMeta):
         with_schema = with_schema or self.read_schema
         return with_schema.from_orm(obj)
 
-    async def filter(self, with_schema: BaseModel = None, **filter_data: dict) -> List[R]:
-        filters = [getattr(self.model, key) == value for key, value in filter_data.items()]
-        stmt = select(self.model).where(and_(*filters))
+    async def filter(
+            self,
+            with_schema: BaseModel = None,
+            and_filters: Optional[Dict[str, Any]] = None,
+            or_filters: Optional[Dict[str, Any]] = None,
+    ) -> List[R]:
+        clauses = []
+
+        if and_filters:
+            and_expressions = [getattr(self.model, key) == value for key, value in and_filters.items()]
+            if and_expressions:
+                clauses.append(sa_and(*and_expressions))
+
+        if or_filters:
+            or_expressions = [getattr(self.model, key) == value for key, value in or_filters.items()]
+            if or_expressions:
+                clauses.append(sa_or(*or_expressions))
+
+        if not clauses:
+            stmt = select(self.model)
+        elif len(clauses) == 1:
+            stmt = select(self.model).where(clauses[0])
+        else:
+            stmt = select(self.model).where(sa_and(*clauses))  # или sa_or, в зависимости от логики
+
         result = await self.session.execute(stmt)
         objs = result.scalars().all()
         with_schema = with_schema or self.read_schema

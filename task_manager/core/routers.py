@@ -1,12 +1,12 @@
 from fastapi import APIRouter, HTTPException, status, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 
-from task_manager.users.application.depends import get_user_interactor
-from task_manager.users.application.interactor import UserInteractor
-from task_manager.users.dependencies import get_current_user
-from task_manager.users.exceptions import UserAlreadyExistsError
-from task_manager.users.schemas import UserRead, UserCreate, UserUpdate, Token, UserAuth
-from task_manager.users.utils import create_access_token
+from task_manager.core.application.depends import get_user_interactor
+from task_manager.core.application.interactor import UserInteractor
+from task_manager.core.dependencies import get_current_user
+from task_manager.core.exceptions import UserAlreadyExistsError
+from task_manager.core.schemas import UserRead, UserCreate, UserUpdate, Token, UserAuth
+from task_manager.core.utils import create_access_token
 
 router = APIRouter(prefix="/users", tags=["users"])
 

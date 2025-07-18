@@ -11,7 +11,8 @@ import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from task_manager.database import ORMBase, DataBaseConfig
 from task_manager.database import config as db_config
-from task_manager.users.models import User
+from task_manager.core.models import User
+from task_manager.tasks.models import Task
 
 config = context.config
 
