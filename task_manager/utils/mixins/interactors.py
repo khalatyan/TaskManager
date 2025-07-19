@@ -1,16 +1,17 @@
+from abc import ABCMeta
 from typing import TypeVar, Generic, List, Optional, Dict, Any
 
-from fastapi import Depends
 from pydantic import BaseModel
 
 from task_manager.utils.mixins.repository import CRUDRepositoryMixin
+from task_manager.utils.mixins_abc.interactors import AbstractCRUDInteractor
 
-T = TypeVar("T")  # ORM модель
-C = TypeVar("C", bound=BaseModel)  # схема создания (Pydantic)
-U = TypeVar("U", bound=BaseModel)  # схема обновления (Pydantic)
-R = TypeVar("R", bound=BaseModel)  # схема для чтения (Pydantic)
+T = TypeVar("T")
+C = TypeVar("C", bound=BaseModel)
+U = TypeVar("U", bound=BaseModel)
+R = TypeVar("R", bound=BaseModel)
 
-class CRUDInteractorMeta(type):
+class CRUDInteractorMeta(ABCMeta):  # Наследуемся от ABCMeta, а не просто от type
     def __new__(cls, name, bases, namespace, **kwargs):
         enabled_create = namespace.get("enabled_create", True)
         enabled_update = namespace.get("enabled_update", True)
@@ -26,7 +27,7 @@ class CRUDInteractorMeta(type):
         return super().__new__(cls, name, bases, namespace)
 
 
-class CRUDInteractorMixin(Generic[T, C, U, R], metaclass=CRUDInteractorMeta):
+class CRUDInteractorMixin(AbstractCRUDInteractor, Generic[T, C, U, R], metaclass=CRUDInteractorMeta):
     enabled_create: bool = True
     enabled_update: bool = True
     enabled_delete: bool = True

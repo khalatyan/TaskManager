@@ -1,5 +1,6 @@
 from fastapi import Depends
 
+from task_manager.core.abc.interactor import AbstractUserInteractor
 from task_manager.core.application.repository import UserRepository
 from task_manager.core.exceptions import UserAlreadyExistsError
 from task_manager.core.models import User
@@ -9,7 +10,7 @@ from task_manager.core.utils import hash_password, verify_password
 from task_manager.utils.mixins.interactors import CRUDInteractorMixin
 
 
-class UserInteractor(CRUDInteractorMixin[User, UserCreate, UserUpdate, UserRead]):
+class UserInteractor(AbstractUserInteractor, CRUDInteractorMixin[User, UserCreate, UserUpdate, UserRead]):
     crud_repository = UserRepository
     enabled_delete = True
 

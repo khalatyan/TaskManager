@@ -4,7 +4,9 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
 class DataBaseConfig:
+    """ Конфигурация основного БД. """
     def __init__(self):
+        """ init. """
         self.DB_HOST = os.getenv('DB_HOST', 'localhost')
         self.DB_PORT = os.getenv('DB_PORT', 5432)
         self.DB_USER = os.getenv('DB_USER', 'postgres')

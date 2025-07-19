@@ -1,3 +1,4 @@
+from abc import ABCMeta
 from optparse import Option
 from typing import TypeVar, Generic, Type, List, Optional, Any, Dict
 
@@ -8,14 +9,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
 from task_manager.database import get_session
+from task_manager.utils.mixins_abc.repositories import AbstractCRUDRepository
 
-T = TypeVar("T")  # ORM модель
-C = TypeVar("C", bound=BaseModel)  # схема создания (Pydantic)
-U = TypeVar("U", bound=BaseModel)  # схема обновления (Pydantic)
-R = TypeVar("R", bound=BaseModel)  # схема для чтения (Pydantic)
+T = TypeVar("T")
+C = TypeVar("C", bound=BaseModel)
+U = TypeVar("U", bound=BaseModel)
+R = TypeVar("R", bound=BaseModel)
 
 
-class CRUDRepositoryMeta(type):
+class CRUDRepositoryMeta(ABCMeta):
     def __new__(cls, name, bases, namespace, **kwargs):
         enabled_create = namespace.get("enabled_create", True)
         enabled_update = namespace.get("enabled_update", True)
@@ -31,7 +33,7 @@ class CRUDRepositoryMeta(type):
         return super().__new__(cls, name, bases, namespace)
 
 
-class CRUDRepositoryMixin(Generic[T, C, U, R], metaclass=CRUDRepositoryMeta):
+class CRUDRepositoryMixin(AbstractCRUDRepository, Generic[T, C, U, R], metaclass=CRUDRepositoryMeta):
     model: Type[T]
     read_schema: Type[R]
     enabled_create: bool = True
