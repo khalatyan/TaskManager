@@ -41,14 +41,12 @@ class AbstractCRUDInteractor(ABC, Generic[T, C, U, R]):
     @abstractmethod
     async def filter(
         self,
-        and_filters: Optional[Dict[str, Any]] = None,
-        or_filters: Optional[Dict[str, Any]] = None,
+        filters: Optional[Dict[str, Any]] = None,
     ) -> List[R]:
         """
         Получить список объектов по AND/OR фильтрам.
 
-        :param and_filters: Условия, объединяемые через AND.
-        :param or_filters: Условия, объединяемые через OR.
+        :param filters: Условия, объединяемые через AND.
         :return: Список объектов, удовлетворяющих условиям.
         """
         ...

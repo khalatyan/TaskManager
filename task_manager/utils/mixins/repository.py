@@ -1,6 +1,6 @@
 from abc import ABCMeta
 from optparse import Option
-from typing import TypeVar, Generic, Type, List, Optional, Any, Dict
+from typing import TypeVar, Generic, Type, List, Optional, Any, Dict, Union
 
 from fastapi import Depends
 from pydantic import BaseModel
@@ -49,35 +49,43 @@ class CRUDRepositoryMixin(AbstractCRUDRepository, Generic[T, C, U, R], metaclass
         with_schema = with_schema or self.read_schema
         return with_schema.from_orm(obj)
 
+    def _build_filter_clause(self, filters: Union[Dict, List]) -> Any:
+        """
+        Рекурсивно строит SQLAlchemy выражение из вложенных фильтров
+        """
+        if isinstance(filters, list):
+            # просто список условий
+            return sa_and(*[self._build_filter_clause(f) for f in filters])
+
+        if isinstance(filters, dict):
+            if "and" in filters:
+                return sa_and(*[self._build_filter_clause(f) for f in filters["and"]])
+            if "or" in filters:
+                return sa_or(*[self._build_filter_clause(f) for f in filters["or"]])
+
+            return sa_and(*[
+                getattr(self.model, field) == value
+                for field, value in filters.items()
+            ])
+
+        raise ValueError("Invalid filter structure")
+
     async def filter(
-            self,
-            with_schema: BaseModel = None,
-            and_filters: Optional[Dict[str, Any]] = None,
-            or_filters: Optional[Dict[str, Any]] = None,
-    ) -> List[R]:
-        clauses = []
+        self,
+        with_schema: Optional[Type[BaseModel]] = None,
+        filters: Optional[Dict[str, Any]] = None,
+    ) -> List[Any]:
+        stmt = select(self.model)
 
-        if and_filters:
-            and_expressions = [getattr(self.model, key) == value for key, value in and_filters.items()]
-            if and_expressions:
-                clauses.append(sa_and(*and_expressions))
-
-        if or_filters:
-            or_expressions = [getattr(self.model, key) == value for key, value in or_filters.items()]
-            if or_expressions:
-                clauses.append(sa_or(*or_expressions))
-
-        if not clauses:
-            stmt = select(self.model)
-        elif len(clauses) == 1:
-            stmt = select(self.model).where(clauses[0])
-        else:
-            stmt = select(self.model).where(sa_and(*clauses))  # или sa_or, в зависимости от логики
+        if filters:
+            clause = self._build_filter_clause(filters)
+            stmt = stmt.where(clause)
 
         result = await self.session.execute(stmt)
         objs = result.scalars().all()
-        with_schema = with_schema or self.read_schema
-        return [with_schema.from_orm(obj) for obj in objs]
+
+        schema = with_schema or self.read_schema
+        return [schema.from_orm(obj) for obj in objs]
 
 
     async def create(self, schema: C, with_schema: BaseModel = None) -> R:

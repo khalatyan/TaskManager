@@ -21,7 +21,7 @@ class UserInteractor(AbstractUserInteractor, CRUDInteractorMixin[User, UserCreat
         super().__init__(crud_repository)
 
     async def create(self, schema: UserCreate) -> UserRead:
-        existing_users = await self.crud_repository.filter(and_filters={"email": schema.email})
+        existing_users = await self.crud_repository.filter(filters={"email": schema.email})
         if existing_users:
             raise UserAlreadyExistsError(schema.email)
 
@@ -32,7 +32,7 @@ class UserInteractor(AbstractUserInteractor, CRUDInteractorMixin[User, UserCreat
         return await self.crud_repository.create(hashed_schema)
 
     async def authenticate_user(self, user: UserAuth):
-        result = await self.crud_repository.filter(and_filters={"email": user.email}, with_schema=UserFullRead)
+        result = await self.crud_repository.filter(filters={"email": user.email}, with_schema=UserFullRead)
         result_user = result[0] if result else None
         if not result_user or not verify_password(user.password, result_user.hashed_password):
             return None

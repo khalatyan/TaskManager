@@ -31,15 +31,13 @@ class AbstractCRUDRepository(ABC, Generic[T, C, U, R]):
     @abstractmethod
     async def filter(
         self,
-        and_filters: Optional[Dict[str, Any]] = None,
-        or_filters: Optional[Dict[str, Any]] = None,
-        with_schema: Optional[BaseModel] = None
+        with_schema: Optional[Type[BaseModel]] = None,
+        filters: Optional[Dict[str, Any]] = None,
     ) -> List[R]:
         """
         Получить список объектов по фильтру. Поддерживает фильтрацию с использованием AND и/или OR условий.
 
-        :param and_filters: Словарь условий, объединяемых через AND.
-        :param or_filters: Словарь условий, объединяемых через OR.
+        :param filters: Словарь условий.
         :param with_schema: Альтернативная Pydantic-схема для сериализации.
         :return: Список объектов, удовлетворяющих условиям фильтрации.
         """
